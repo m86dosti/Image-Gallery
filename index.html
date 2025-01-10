@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fa">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>گالری تصاویر داینامیک</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <style>
+      :root {
+        --bg: #1e1e1e;
+        --color: #ffffff;
+        --primary: #443b3e;
+        --secondary: #4e4d5a;
+        --accent: #ff000d;
+        --highlight: #6a6a74;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+      }
+      body {
+        font-family: "Arial", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: var(--bg);
+        margin: 0;
+        padding: 20px;
+        color: var(--color);
+        transition: background-color 0.3s, color 0.3s;
+      }
+      h1 {
+        margin-top: 20px;
+        color: var(--highlight);
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        width: 100%;
+        max-width: 1200px;
+        margin: 20px 0;
+      }
+      .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .gallery-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
+      }
+      .gallery-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 15px;
+        cursor: pointer;
+      }
+      .gallery-item .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        color: var(--color);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+        border-radius: 15px;
+      }
+      .gallery-item:hover .overlay {
+        opacity: 1;
+      }
+      .gallery-item .overlay h3 {
+        margin: 0;
+        font-size: 1.5em;
+        cursor: pointer;
+      }
+      .gallery-item .overlay p {
+        margin: 5px 0;
+        font-size: 0.9em;
+        cursor: pointer;
+      }
+      .gallery-item button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: var(--accent);
+        border: none;
+        color: var(--color);
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2em;
+        box-shadow: var(--shadow);
+        transition: background-color 0.3s;
+      }
+      .gallery-item button:hover {
+        background-color: var(--highlight);
+      }
+      .controls {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        align-items: center;
+      }
+      .controls input[type="file"] {
+        display: none;
+      }
+      .custom-file-upload,
+      button {
+        display: inline-block;
+        padding: 12px 24px;
+        cursor: pointer;
+        background: var(--gradient);
+        color: var(--color);
+        border-radius: 8px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        font-size: 1em;
+        box-shadow: var(--shadow);
+      }
+      .custom-file-upload:hover,
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+      #preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .preview-image {
+        max-width: 100px;
+        max-height: 100px;
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .preview-image:hover {
+        transform: scale(1.1);
+        box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
+      }
+      .img-pre {
+        border: 2px dashed var(--primary);
+        padding: 20px;
+        margin: 10px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        background-color: rgba(0, 0, 0, 0.2);
+      }
+      .error-message {
+        color: var(--accent);
+        margin-top: 10px;
+        font-size: 0.9em;
+        display: none;
+      }
+      .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .lightbox img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 10px;
+      }
+      .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        color: var(--color);
+        font-size: 2em;
+        cursor: pointer;
+      }
+      .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: var(--color);
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 1.5em;
+        border-radius: 50%;
+      }
+      .lightbox-nav.prev {
+        left: 20px;
+      }
+      .lightbox-nav.next {
+        right: 20px;
+      }
+      @media (max-width: 768px) {
+        .gallery {
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+        .controls {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>گالری تصاویر داینامیک</h1>
+    <div class="controls">
+      <div class="img-pre">
+        <label for="imageInput" class="custom-file-upload">
+          <i class="fas fa-upload"></i> انتخاب تصاویر
+        </label>
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/*"
+          onchange="previewImage()"
+          multiple
+        />
+        <div id="preview-container"></div>
+        <div class="error-message" id="errorMessage">
+          لطفاً حداقل یک تصویر انتخاب کنید!
+        </div>
+      </div>
+      <button onclick="addImages()">
+        <i class="fas fa-plus"></i> افزودن تصاویر
+      </button>
+      <button onclick="clearGallery()">
+        <i class="fas fa-trash"></i> حذف تمامی تصاویر
+      </button>
+    </div>
+    <div class="gallery" id="gallery"></div>
+
+    <div class="lightbox" id="lightbox">
+      <span class="lightbox-close" onclick="closeLightbox()">×</span>
+      <button class="lightbox-nav prev" onclick="prevImage()">‹</button>
+      <img id="lightbox-img" />
+      <button class="lightbox-nav next" onclick="nextImage()">›</button>
+    </div>
+
+    <script>
+      let currentImageIndex = 0;
+      let images = [];
+
+      function loadGallery() {
+        const gallery = document.getElementById("gallery");
+        const savedImages = JSON.parse(localStorage.getItem("galleryImages")) || [];
+        images = savedImages;
+        savedImages.forEach((image, index) => {
+          addImageToGallery(image.src, image.title, image.description, index);
+        });
+      }
+
+      function addImageToGallery(imageSrc, title = "عنوان تصویر", description = "توضیحات اختیاری", index) {
+        const gallery = document.getElementById("gallery");
+        const galleryItem = document.createElement("div");
+        galleryItem.classList.add("gallery-item");
+
+        const img = document.createElement("img");
+        img.src = imageSrc;
+        img.onclick = () => openLightbox(index);
+
+        const overlay = document.createElement("div");
+        overlay.classList.add("overlay");
+        overlay.innerHTML = `
+          <h3 onclick="editText(this, ${index}, 'title')">${title}</h3>
+          <p onclick="editText(this, ${index}, 'description')">${description}</p>
+        `;
+
+        const deleteButton = document.createElement("button");
+        deleteButton.innerHTML = "×";
+        deleteButton.onclick = () => deleteImage(galleryItem, index);
+
+        galleryItem.appendChild(img);
+        galleryItem.appendChild(overlay);
+        galleryItem.appendChild(deleteButton);
+        gallery.appendChild(galleryItem);
+      }
+
+      function previewImage() {
+        const input = document.getElementById("imageInput");
+        const previewContainer = document.getElementById("preview-container");
+        const errorMessage = document.getElementById("errorMessage");
+        previewContainer.innerHTML = "";
+
+        if (input.files && input.files.length > 0) {
+          Array.from(input.files).forEach((file) => {
+            if (file.size > 2 * 1024 * 1024) {
+              alert("حجم فایل باید کمتر از 2 مگابایت باشد.");
+              return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const preview = document.createElement("img");
+              preview.src = e.target.result;
+              preview.classList.add("preview-image");
+              previewContainer.appendChild(preview);
+              errorMessage.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+          });
+        } else {
+          errorMessage.style.display = "block";
+        }
+      }
+
+      function addImages() {
+        const input = document.getElementById("imageInput");
+        const errorMessage = document.getElementById("errorMessage");
+        if (!input.files || input.files.length === 0) {
+          errorMessage.style.display = "block";
+          return;
+        }
+
+        Array.from(input.files).forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const imageSrc = e.target.result;
+            const newImage = { src: imageSrc, title: "عنوان تصویر", description: "توضیحات اختیاری" };
+            images.push(newImage);
+            addImageToGallery(imageSrc, newImage.title, newImage.description, images.length - 1);
+            localStorage.setItem("galleryImages", JSON.stringify(images));
+          };
+          reader.readAsDataURL(file);
+        });
+
+        input.value = "";
+        document.getElementById("preview-container").innerHTML = "";
+        errorMessage.style.display = "none";
+      }
+
+      function editText(element, index, type) {
+        const newText = prompt("متن جدید را وارد کنید:", element.innerText);
+        if (newText) {
+          element.innerText = newText;
+          if (type === "title") {
+            images[index].title = newText;
+          } else if (type === "description") {
+            images[index].description = newText;
+          }
+          localStorage.setItem("galleryImages", JSON.stringify(images));
+        }
+      }
+
+      function deleteImage(galleryItem, index) {
+        const gallery = document.getElementById("gallery");
+        gallery.removeChild(galleryItem);
+        images.splice(index, 1);
+        localStorage.setItem("galleryImages", JSON.stringify(images));
+      }
+
+      function clearGallery() {
+        const gallery = document.getElementById("gallery");
+        gallery.innerHTML = "";
+        images = [];
+        localStorage.removeItem("galleryImages");
+      }
+
+      function openLightbox(index) {
+        currentImageIndex = index;
+        const lightbox = document.getElementById("lightbox");
+        const lightboxImg = document.getElementById("lightbox-img");
+        lightboxImg.src = images[index].src;
+        lightbox.style.display = "flex";
+      }
+
+      function closeLightbox() {
+        const lightbox = document.getElementById("lightbox");
+        lightbox.style.display = "none";
+      }
+
+      function prevImage() {
+        currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+        document.getElementById("lightbox-img").src = images[currentImageIndex].src;
+      }
+
+      function nextImage() {
+        currentImageIndex = (currentImageIndex + 1) % images.length;
+        document.getElementById("lightbox-img").src = images[currentImageIndex].src;
+      }
+
+      window.onload = loadGallery;
+    </script>
+  </body>
+</html>
